@@ -19,25 +19,24 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         db = DatabaseHelper(this)
 
         setContent {
             MyPocketTheme {
-                Surface(modifier = Modifier.fillMaxSize()) {
-                    LoginScreen(
-                        onLoginSuccess = {
-                            startActivity(Intent(this, HomeActivity::class.java))
-                        },
-                        onNavigateToRegister = {
-                            startActivity(Intent(this, RegisterActivity::class.java))
-                        },
-                        onNavigateToForgot = {
-                            startActivity(Intent(this, ForgotPasswordActivity::class.java))
-                        },
-                        dbHelper = db
-                    )
-                }
+                LoginScreen(
+                    dbHelper = db,
+                    onLoginSuccess = { username ->
+                        val intent = Intent(this, HomeActivity::class.java)
+                        intent.putExtra("username", username)
+                        startActivity(intent)
+                    },
+                    onNavigateToRegister = {
+                        startActivity(Intent(this, RegisterActivity::class.java))
+                    },
+                    onNavigateToForgot = {
+                        startActivity(Intent(this, ForgotPasswordActivity::class.java))
+                    }
+                )
             }
         }
     }
@@ -45,13 +44,12 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun LoginScreen(
-    onLoginSuccess: () -> Unit,
+    dbHelper: DatabaseHelper,
+    onLoginSuccess: (String) -> Unit,
     onNavigateToRegister: () -> Unit,
-    onNavigateToForgot: () -> Unit,
-    dbHelper: DatabaseHelper
+    onNavigateToForgot: () -> Unit
 ) {
     val context = LocalContext.current
-
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
@@ -62,7 +60,6 @@ fun LoginScreen(
         verticalArrangement = Arrangement.Center
     ) {
         Text(text = "Login", style = MaterialTheme.typography.headlineMedium)
-
         Spacer(modifier = Modifier.height(16.dp))
 
         OutlinedTextField(
@@ -85,13 +82,9 @@ fun LoginScreen(
         Button(onClick = {
             val isValid = dbHelper.checkLogin(username, password)
             if (isValid) {
-                onLoginSuccess()
+                onLoginSuccess(username) // 👈 Pass the username correctly
             } else {
-                Toast.makeText(
-                    context,
-                    "Invalid credentials",
-                    Toast.LENGTH_SHORT
-                ).show()
+                Toast.makeText(context, "Invalid credentials", Toast.LENGTH_SHORT).show()
             }
         }, modifier = Modifier.fillMaxWidth()) {
             Text("Login")

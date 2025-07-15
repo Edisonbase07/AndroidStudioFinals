@@ -25,17 +25,15 @@
             </intent-filter>
         </activity>
 
-        <!-- 🟡 Sign Up screen -->
+        <!-- 🟡 Other Screens -->
         <activity android:name=".RegisterActivity" />
-
-        <!-- 🟡 Forgot Password (add later) -->
         <activity android:name=".ForgotPasswordActivity" />
-
-        <!-- 🟡 Change Password (add later) -->
         <activity android:name=".ChangePasswordActivity" />
-
-        <!-- 🟢 Home screen after login -->
         <activity android:name=".HomeActivity" />
+        <activity android:name=".AddMoneyActivity" />
+        <activity android:name=".SendMoneyActivity" />
+        <activity android:name=".TransactionHistoryActivity" />
+        <activity android:name=".ProfileActivity" />
 
     </application>
 
