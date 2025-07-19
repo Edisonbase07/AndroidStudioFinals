@@ -1,8 +1,5 @@
 package com.example.mypocket
 
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -10,29 +7,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-
-class TransactionHistoryActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        val username = intent.getStringExtra("username") ?: ""
-
-        setContent {
-            val dbHelper = DatabaseHelper(this)
-
-            Scaffold(
-                topBar = {
-                    TopNavigationBar(currentUsername = username, currentActivity = this)
-                }
-            ) { innerPadding ->
-                TransactionHistoryScreen(
-                    username = username,
-                    dbHelper = dbHelper,
-                    modifier = Modifier.padding(innerPadding)
-                )
-            }
-        }
-    }
-}
 
 @Composable
 fun TransactionHistoryScreen(
@@ -42,7 +16,6 @@ fun TransactionHistoryScreen(
 ) {
     var transactions by remember { mutableStateOf(listOf<String>()) }
 
-    // Load transaction history
     LaunchedEffect(Unit) {
         transactions = dbHelper.getTransactions(username)
     }
@@ -61,7 +34,7 @@ fun TransactionHistoryScreen(
             LazyColumn {
                 items(transactions) { transaction ->
                     Text(transaction)
-                    HorizontalDivider()
+                    Divider()
                 }
             }
         }

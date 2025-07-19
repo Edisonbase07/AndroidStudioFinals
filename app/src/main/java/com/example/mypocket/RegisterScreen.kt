@@ -1,10 +1,6 @@
 package com.example.mypocket
 
-import android.content.Intent
-import android.os.Bundle
 import android.widget.Toast
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -12,32 +8,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
-import com.example.mypocket.ui.theme.MyPocketTheme
-
-class RegisterActivity : ComponentActivity() {
-    private lateinit var db: DatabaseHelper
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        db = DatabaseHelper(this)
-
-        setContent {
-            MyPocketTheme {
-                Surface(modifier = Modifier.fillMaxSize()) {
-                    RegisterScreen(
-                        dbHelper = db,
-                        onRegisterSuccess = {
-                            // Redirect to Login (MainActivity) after registration
-                            val intent = Intent(this, MainActivity::class.java)
-                            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                            startActivity(intent)
-                        }
-                    )
-                }
-            }
-        }
-    }
-}
 
 @Composable
 fun RegisterScreen(
@@ -100,7 +70,7 @@ fun RegisterScreen(
                     )
                     if (success) {
                         Toast.makeText(context, "Registration successful", Toast.LENGTH_SHORT).show()
-                        onRegisterSuccess() // will go to Login
+                        onRegisterSuccess()
                     } else {
                         Toast.makeText(context, "Username already exists", Toast.LENGTH_SHORT).show()
                     }

@@ -1,42 +1,25 @@
 package com.example.mypocket
 
-import android.content.Intent
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-
-class ProfileActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        val username = intent.getStringExtra("username") ?: ""
-
-        setContent {
-            Scaffold(
-                topBar = {
-                    TopNavigationBar(currentUsername = username, currentActivity = this)
-                }
-            ) { innerPadding ->
-                ProfileScreen(
-                    username = username,
-                    dbHelper = DatabaseHelper(this),
-                    modifier = Modifier.padding(innerPadding)
-                )
-            }
-        }
-    }
-}
+import androidx.compose.ui.platform.LocalContext
+import androidx.navigation.NavController
 
 @Composable
-fun ProfileScreen(username: String, dbHelper: DatabaseHelper, modifier: Modifier = Modifier) {
+fun ProfileScreen(
+    username: String,
+    dbHelper: DatabaseHelper,
+    navController: NavController,
+    modifier: Modifier = Modifier
+) {
     val context = LocalContext.current
-
-    val userDetails = dbHelper.getUserProfile(username)
+    // Load user details from DB
+    val userDetails by remember(username) {
+        mutableStateOf(dbHelper.getUserProfile(username))
+    }
 
     val fullName = userDetails["full_name"] ?: "N/A"
     val email = userDetails["email"] ?: "N/A"
@@ -61,14 +44,14 @@ fun ProfileScreen(username: String, dbHelper: DatabaseHelper, modifier: Modifier
             Text("Phone Number: $phone")
             Text("Gender: $gender")
             Text("Date of Birth: $dob")
-
         }
 
         Button(
             onClick = {
-                val intent = Intent(context, MainActivity::class.java)
-                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                context.startActivity(intent)
+                // Logout: navigate back to login and clear backstack
+                navController.navigate("login") {
+                    popUpTo(0) { inclusive = true }
+                }
             },
             modifier = Modifier.fillMaxWidth(),
             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)

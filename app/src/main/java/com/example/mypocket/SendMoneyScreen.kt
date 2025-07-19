@@ -1,36 +1,12 @@
 package com.example.mypocket
 
-import android.os.Bundle
 import android.widget.Toast
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-
-class SendMoneyActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        val username = intent.getStringExtra("username") ?: ""
-
-        setContent {
-            Scaffold(
-                topBar = {
-                    TopNavigationBar(currentUsername = username, currentActivity = this)
-                }
-            ) { innerPadding ->
-                SendMoneyScreen(
-                    username = username,
-                    dbHelper = DatabaseHelper(this),
-                    modifier = Modifier.padding(innerPadding)
-                )
-            }
-        }
-    }
-}
 
 @Composable
 fun SendMoneyScreen(username: String, dbHelper: DatabaseHelper, modifier: Modifier = Modifier) {

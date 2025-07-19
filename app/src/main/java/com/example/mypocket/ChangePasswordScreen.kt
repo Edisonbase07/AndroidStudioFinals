@@ -1,52 +1,13 @@
 package com.example.mypocket
 
-import android.content.Intent
-import android.os.Bundle
 import android.widget.Toast
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
-import com.example.mypocket.ui.theme.MyPocketTheme
-import androidx.compose.ui.platform.LocalContext
-
-
-class ChangePasswordActivity : ComponentActivity() {
-    private lateinit var db: DatabaseHelper
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-        db = DatabaseHelper(this)
-
-        val username = intent.getStringExtra("username")
-
-        setContent {
-            MyPocketTheme {
-                Surface(modifier = Modifier.fillMaxSize()) {
-                    if (username != null) {
-                        ChangePasswordScreen(
-                            username = username,
-                            dbHelper = db,
-                            onPasswordChanged = {
-                                Toast.makeText(this, "Password updated!", Toast.LENGTH_SHORT).show()
-                                // Go back to login
-                                startActivity(Intent(this, MainActivity::class.java))
-                                finish()
-                            }
-                        )
-                    } else {
-                        Text("Error: Username missing.")
-                    }
-                }
-            }
-        }
-    }
-}
 
 @Composable
 fun ChangePasswordScreen(
@@ -93,4 +54,3 @@ fun ChangePasswordScreen(
         }
     }
 }
-
