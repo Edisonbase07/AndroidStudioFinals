@@ -54,7 +54,6 @@ class MainActivity : ComponentActivity() {
                     NavHost(
                         navController = navController,
                         startDestination = "login",
-                        modifier = Modifier.padding(innerPadding)
                     ) {
                         composable("login") {
                             LoginScreen(

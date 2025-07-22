@@ -15,6 +15,17 @@ fun ForgotPasswordScreen(
 ) {
     val context = LocalContext.current
     var username by remember { mutableStateOf("") }
+    val textFieldColors = OutlinedTextFieldDefaults.colors(
+        focusedBorderColor = MaterialTheme.colorScheme.primary,
+        unfocusedBorderColor = MaterialTheme.colorScheme.secondary,
+        focusedLabelColor = MaterialTheme.colorScheme.primary,
+        unfocusedLabelColor = MaterialTheme.colorScheme.secondary,
+        cursorColor = MaterialTheme.colorScheme.primary,
+        focusedTextColor = MaterialTheme.colorScheme.onBackground,
+        unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+        focusedContainerColor = MaterialTheme.colorScheme.surface,
+        unfocusedContainerColor = MaterialTheme.colorScheme.surface
+    )
 
     Column(
         modifier = Modifier
@@ -29,7 +40,8 @@ fun ForgotPasswordScreen(
             value = username,
             onValueChange = { username = it },
             label = { Text("Username") },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            colors = textFieldColors
         )
 
         Spacer(modifier = Modifier.height(16.dp))
