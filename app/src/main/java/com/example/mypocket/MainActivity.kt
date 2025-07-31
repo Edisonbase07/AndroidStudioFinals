@@ -1,20 +1,20 @@
 package com.example.mypocket
 
-import android.content.Intent
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.unit.dp
+import androidx.navigation.NavType
+import androidx.navigation.compose.*
+import androidx.navigation.navArgument
 import com.example.mypocket.ui.theme.MyPocketTheme
 
 class MainActivity : ComponentActivity() {
+
     private lateinit var db: DatabaseHelper
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -23,81 +23,152 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             MyPocketTheme {
-                LoginScreen(
-                    dbHelper = db,
-                    onLoginSuccess = { username ->
-                        val intent = Intent(this, HomeActivity::class.java)
-                        intent.putExtra("username", username)
-                        startActivity(intent)
-                    },
-                    onNavigateToRegister = {
-                        startActivity(Intent(this, RegisterActivity::class.java))
-                    },
-                    onNavigateToForgot = {
-                        startActivity(Intent(this, ForgotPasswordActivity::class.java))
-                    }
+                val navController = rememberNavController()
+
+                // Observe current route
+                val currentBackStackEntry by navController.currentBackStackEntryAsState()
+                val currentRoute = currentBackStackEntry?.destination?.route ?: ""
+
+                // Routes that should not show the TopAppBar
+                val hideTopBarRoutes = listOf(
+                    "login", "register", "forgotPassword", "changePassword/{username}"
                 )
+
+                // Get current username from backstack entry arguments if available
+                val currentUsername = currentBackStackEntry?.arguments?.getString("username") ?: ""
+
+
+                Scaffold(
+                    topBar = {
+                        if (!hideTopBarRoutes.any { currentRoute.startsWith(it.substringBefore("/{")) }) {
+                            TopNavigationBar(
+                                currentUsername = currentUsername,
+                                navController = navController,
+                                currentRoute = currentRoute
+                            )
+
+                        }
+                    }
+                ) { innerPadding ->
+
+                    NavHost(
+                        navController = navController,
+                        startDestination = "login",
+                    ) {
+                        composable("login") {
+                            LoginScreen(
+                                dbHelper = db,
+                                onLoginSuccess = { username ->
+                                    navController.navigate("home/$username") {
+                                        popUpTo("login") { inclusive = true }
+                                    }
+                                },
+                                onNavigateToRegister = {
+                                    navController.navigate("register")
+                                },
+                                onNavigateToForgot = {
+                                    navController.navigate("forgotPassword")
+                                }
+                            )
+                        }
+                        composable("register") {
+                            RegisterScreen(
+                                dbHelper = db,
+                                onRegisterSuccess = {
+                                    navController.popBackStack("login", false)
+                                }
+                            )
+                        }
+                        composable("forgotPassword") {
+                            ForgotPasswordScreen(
+                                dbHelper = db,
+                                onNext = { username ->
+                                    navController.navigate("changePassword/$username")
+                                }
+                            )
+                        }
+                        composable(
+                            route = "changePassword/{username}",
+                            arguments = listOf(navArgument("username") { type = NavType.StringType })
+                        ) { backStackEntry ->
+                            val username = backStackEntry.arguments?.getString("username") ?: ""
+                            ChangePasswordScreen(
+                                username = username,
+                                dbHelper = db,
+                                onPasswordChanged = {
+                                    navController.navigate("login") {
+                                        popUpTo("login") { inclusive = true }
+                                    }
+                                }
+                            )
+                        }
+                        composable(
+                            route = "home/{username}",
+                            arguments = listOf(navArgument("username") { type = NavType.StringType })
+                        ) { backStackEntry ->
+                            val username = backStackEntry.arguments?.getString("username") ?: ""
+                            HomeScreen(
+                                username = username,
+                                dbHelper = db,
+                                onAddMoney = { navController.navigate("addMoney/$username") },
+                                onSendMoney = { navController.navigate("sendMoney/$username") },
+                                onViewTransactions = { navController.navigate("transactionHistory/$username") },
+                                onLogout = {
+                                    navController.navigate("login") {
+                                        popUpTo("login") { inclusive = true }
+                                    }
+                                },
+                                modifier = Modifier.padding(innerPadding)
+                            )
+                        }
+                        composable(
+                            route = "addMoney/{username}",
+                            arguments = listOf(navArgument("username") { type = NavType.StringType })
+                        ) { backStackEntry ->
+                            val username = backStackEntry.arguments?.getString("username") ?: ""
+                            AddMoneyScreen(
+                                username = username,
+                                dbHelper = db,
+                                modifier = Modifier.padding(innerPadding)
+                            )
+                        }
+                        composable(
+                            route = "sendMoney/{username}",
+                            arguments = listOf(navArgument("username") { type = NavType.StringType })
+                        ) { backStackEntry ->
+                            val username = backStackEntry.arguments?.getString("username") ?: ""
+                            SendMoneyScreen(
+                                username = username,
+                                dbHelper = db,
+                                modifier = Modifier.padding(innerPadding)
+                            )
+                        }
+                        composable(
+                            route = "transactionHistory/{username}",
+                            arguments = listOf(navArgument("username") { type = NavType.StringType })
+                        ) { backStackEntry ->
+                            val username = backStackEntry.arguments?.getString("username") ?: ""
+                            TransactionHistoryScreen(
+                                username = username,
+                                dbHelper = db,
+                                modifier = Modifier.padding(innerPadding)
+                            )
+                        }
+                        composable(
+                            route = "profile/{username}",
+                            arguments = listOf(navArgument("username") { type = NavType.StringType })
+                        ) { backStackEntry ->
+                            val username = backStackEntry.arguments?.getString("username") ?: ""
+                            ProfileScreen(
+                                username = username,
+                                dbHelper = db,
+                                modifier = Modifier.padding(innerPadding),
+                                navController = navController  // Pass navController if you want to handle logout or navigation in profile
+                            )
+                        }
+                    }
+                }
             }
-        }
-    }
-}
-
-@Composable
-fun LoginScreen(
-    dbHelper: DatabaseHelper,
-    onLoginSuccess: (String) -> Unit,
-    onNavigateToRegister: () -> Unit,
-    onNavigateToForgot: () -> Unit
-) {
-    val context = LocalContext.current
-    var username by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp),
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text(text = "Login", style = MaterialTheme.typography.headlineMedium)
-        Spacer(modifier = Modifier.height(16.dp))
-
-        OutlinedTextField(
-            value = username,
-            onValueChange = { username = it },
-            label = { Text("Username") },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        OutlinedTextField(
-            value = password,
-            onValueChange = { password = it },
-            label = { Text("Password") },
-            visualTransformation = PasswordVisualTransformation(),
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Button(onClick = {
-            val isValid = dbHelper.checkLogin(username, password)
-            if (isValid) {
-                onLoginSuccess(username) // 👈 Pass the username correctly
-            } else {
-                Toast.makeText(context, "Invalid credentials", Toast.LENGTH_SHORT).show()
-            }
-        }, modifier = Modifier.fillMaxWidth()) {
-            Text("Login")
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        TextButton(onClick = onNavigateToRegister) {
-            Text("Don't have an account? Sign Up")
-        }
-
-        TextButton(onClick = onNavigateToForgot) {
-            Text("Forgot Password?")
         }
     }
 }

@@ -158,15 +158,21 @@ class DatabaseHelper(context: Context) :
     fun sendMoney(fromUser: String, toUser: String, amount: Double): Boolean {
         val db = writableDatabase
         db.beginTransaction()
+
         try {
-            val cursor = db.rawQuery("SELECT * FROM users WHERE username=?", arrayOf(toUser))
+            if (fromUser.trim() == toUser.trim()) {
+                Log.e("SendMoney", "Cannot send money to yourself.")
+                return false
+            }
+
+            val cursor = db.rawQuery("SELECT * FROM users WHERE username=?", arrayOf(toUser.trim()))
             if (!cursor.moveToFirst()) {
                 cursor.close()
                 return false
             }
             cursor.close()
 
-            val balCursor = db.rawQuery("SELECT balance FROM balances WHERE username=?", arrayOf(fromUser))
+            val balCursor = db.rawQuery("SELECT balance FROM balances WHERE username=?", arrayOf(fromUser.trim()))
             if (balCursor.moveToFirst()) {
                 val balance = balCursor.getDouble(0)
                 if (balance < amount) {
@@ -179,34 +185,39 @@ class DatabaseHelper(context: Context) :
             }
             balCursor.close()
 
-            db.execSQL("UPDATE balances SET balance = balance - ? WHERE username = ?", arrayOf(amount, fromUser))
-            db.execSQL("UPDATE balances SET balance = balance + ? WHERE username = ?", arrayOf(amount, toUser))
+            // Update balances
+            db.execSQL("UPDATE balances SET balance = balance - ? WHERE username = ?", arrayOf(amount, fromUser.trim()))
+            db.execSQL("UPDATE balances SET balance = balance + ? WHERE username = ?", arrayOf(amount, toUser.trim()))
 
-            val cvSender = ContentValues()
-            cvSender.put("username", fromUser)
-            cvSender.put("type", "send")
-            cvSender.put("amount", amount)
-            cvSender.put("description", "Sent to $toUser")
-            cvSender.put("date", System.currentTimeMillis().toString())
+            // Log transactions
+            val cvSender = ContentValues().apply {
+                put("username", fromUser.trim())
+                put("type", "send")
+                put("amount", amount)
+                put("description", "Sent to $toUser")
+                put("date", System.currentTimeMillis().toString())
+            }
             db.insert("transactions", null, cvSender)
 
-            val cvReceiver = ContentValues()
-            cvReceiver.put("username", toUser)
-            cvReceiver.put("type", "receive")
-            cvReceiver.put("amount", amount)
-            cvReceiver.put("description", "Received from $fromUser")
-            cvReceiver.put("date", System.currentTimeMillis().toString())
+            val cvReceiver = ContentValues().apply {
+                put("username", toUser.trim())
+                put("type", "receive")
+                put("amount", amount)
+                put("description", "Received from $fromUser")
+                put("date", System.currentTimeMillis().toString())
+            }
             db.insert("transactions", null, cvReceiver)
 
             db.setTransactionSuccessful()
             return true
         } catch (e: Exception) {
-            Log.e("DatabaseHelper", "Error in addMoney ${e.message}")
+            Log.e("SendMoney", "Error: ${e.message}")
             return false
         } finally {
             db.endTransaction()
         }
     }
+
 
     fun getTransactions(username: String): List<String> {
         val transactions = mutableListOf<String>()
@@ -225,6 +236,25 @@ class DatabaseHelper(context: Context) :
         cursor.close()
         return transactions
     }
+
+    fun getRecentTransactions(username: String, limit: Int = 5): List<String> {
+        val transactions = mutableListOf<String>()
+        val db = readableDatabase
+        val cursor = db.rawQuery(
+            "SELECT type, amount, description, date FROM transactions WHERE username=? ORDER BY date DESC LIMIT ?",
+            arrayOf(username, limit.toString())
+        )
+        while (cursor.moveToNext()) {
+            val type = cursor.getString(0)
+            val amount = cursor.getDouble(1)
+            val desc = cursor.getString(2)
+            val date = cursor.getString(3)
+            transactions.add("$date: [$type] $desc - $$amount")
+        }
+        cursor.close()
+        return transactions
+    }
+
 
     fun getBalance(username: String): Double {
         val db = readableDatabase

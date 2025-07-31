@@ -1,75 +1,84 @@
 package com.example.mypocket
 
-import android.app.Activity
-import android.content.Intent
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.material.icons.filled.AttachMoney
-import androidx.compose.material.icons.filled.History
+import androidx.navigation.NavController
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.automirrored.filled.Send
-
-
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.LayoutDirection
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TopNavigationBar(currentUsername: String, currentActivity: Activity) {
-    val context = LocalContext.current
+fun TopNavigationBar(
+    currentUsername: String,
+    navController: NavController,
+    currentRoute: String
+) {
+    val colorScheme = MaterialTheme.colorScheme
+
+    val isActive: (String) -> Boolean = { route ->
+        currentRoute == route || currentRoute.startsWith("$route/")
+    }
 
     TopAppBar(
-        title = { Text("My Pocket", color = Color.White) },
+        title = {
+            Text(
+                "My Pocket",
+                color = colorScheme.onPrimary
+            )
+        },
         colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = Color(0xFF990000)  // Red background
+            containerColor = colorScheme.primary,
+            titleContentColor = colorScheme.onPrimary
         ),
         actions = {
-            IconButton(onClick = {
-                val intent = Intent(context, HomeActivity::class.java)
-                intent.putExtra("username", currentUsername)
-                context.startActivity(intent)
-                currentActivity.finish()
-            }) {
-                Icon(Icons.Default.Home, contentDescription = "Home", tint = Color.White)
-            }
+            TopNavIcon(
+                navController, "home/$currentUsername", isActive("home"),
+                Icons.Default.Home, "Home"
+            )
 
-            IconButton(onClick = {
-                val intent = Intent(context, AddMoneyActivity::class.java)
-                intent.putExtra("username", currentUsername)
-                context.startActivity(intent)
-                currentActivity.finish()
-            }) {
-                Icon(Icons.Default.AttachMoney, contentDescription = "Add Money", tint = Color.LightGray)
-            }
+            TopNavIcon(
+                navController, "addMoney/$currentUsername", isActive("addMoney"),
+                Icons.Default.AttachMoney, "Add Money"
+            )
 
-            IconButton(onClick = {
-                val intent = Intent(context, TransactionHistoryActivity::class.java)
-                intent.putExtra("username", currentUsername)
-                context.startActivity(intent)
-                currentActivity.finish()
-            }) {
-                Icon(Icons.Default.History, contentDescription = "Transaction History", tint = Color.LightGray)
-            }
+            TopNavIcon(
+                navController, "transactionHistory/$currentUsername", isActive("transactionHistory"),
+                Icons.Default.History, "Transaction History"
+            )
 
-            IconButton(onClick = {
-                val intent = Intent(context, SendMoneyActivity::class.java)
-                intent.putExtra("username", currentUsername)
-                context.startActivity(intent)
-                currentActivity.finish()
-            }) {
-                Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "Send Money", tint = Color.LightGray)
-            }
+            TopNavIcon(
+                navController, "sendMoney/$currentUsername", isActive("sendMoney"),
+                Icons.AutoMirrored.Filled.Send, "Send Money"
+            )
 
-            IconButton(onClick = {
-                val intent = Intent(context, ProfileActivity::class.java)
-                intent.putExtra("username", currentUsername)
-                context.startActivity(intent)
-                currentActivity.finish()
-            }) {
-                Icon(Icons.Default.Person, contentDescription = "Profile", tint = Color.LightGray)
-            }
-
+            TopNavIcon(
+                navController, "profile/$currentUsername", isActive("profile"),
+                Icons.Default.Person, "Profile"
+            )
         }
     )
+}
+
+@Composable
+fun TopNavIcon(
+    navController: NavController,
+    route: String,
+    isActive: Boolean,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    description: String
+) {
+    IconButton(onClick = {
+        navController.navigate(route)
+    }) {
+        Icon(
+            imageVector = icon,
+            contentDescription = description,
+            tint = if (isActive) Color.White else Color.LightGray
+        )
+    }
 }

@@ -1,42 +1,12 @@
 package com.example.mypocket
 
-import android.content.Intent
-import android.os.Bundle
 import android.widget.Toast
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import com.example.mypocket.ui.theme.MyPocketTheme
 import androidx.compose.ui.platform.LocalContext
-
-class ForgotPasswordActivity : ComponentActivity() {
-    private lateinit var db: DatabaseHelper
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        db = DatabaseHelper(this)
-
-        setContent {
-            MyPocketTheme {
-                Surface(modifier = Modifier.fillMaxSize()) {
-                    ForgotPasswordScreen(
-                        dbHelper = db,
-                        onNext = { username ->
-                            // Send username to ChangePasswordActivity
-                            val intent = Intent(this, ChangePasswordActivity::class.java)
-                            intent.putExtra("username", username)
-                            startActivity(intent)
-                        }
-                    )
-                }
-            }
-        }
-    }
-}
+import androidx.compose.ui.unit.dp
 
 @Composable
 fun ForgotPasswordScreen(
@@ -45,6 +15,17 @@ fun ForgotPasswordScreen(
 ) {
     val context = LocalContext.current
     var username by remember { mutableStateOf("") }
+    val textFieldColors = OutlinedTextFieldDefaults.colors(
+        focusedBorderColor = MaterialTheme.colorScheme.primary,
+        unfocusedBorderColor = MaterialTheme.colorScheme.secondary,
+        focusedLabelColor = MaterialTheme.colorScheme.primary,
+        unfocusedLabelColor = MaterialTheme.colorScheme.secondary,
+        cursorColor = MaterialTheme.colorScheme.primary,
+        focusedTextColor = MaterialTheme.colorScheme.onBackground,
+        unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+        focusedContainerColor = MaterialTheme.colorScheme.surface,
+        unfocusedContainerColor = MaterialTheme.colorScheme.surface
+    )
 
     Column(
         modifier = Modifier
@@ -59,7 +40,8 @@ fun ForgotPasswordScreen(
             value = username,
             onValueChange = { username = it },
             label = { Text("Username") },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            colors = textFieldColors
         )
 
         Spacer(modifier = Modifier.height(16.dp))
